@@ -8,7 +8,6 @@ all: $(OBJECT_FILES)
 	$(GC) -o $(PROGRAM) $(OBJECT_FILES)
 
 $(OBJECT_FILES): %.o: ./src/%.cpp
-	echo $(GC) $(CPP_OPTIONS) -c $<
 	$(GC) $(CPP_OPTIONS) -c $<
 
 clean:
