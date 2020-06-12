@@ -13,5 +13,18 @@ int main(int argvc, const char** argv)
 
   Visualizer vis(640, 480);
   vis.start();
+
+  std::vector<Object> entities;
+  entities.push_back(myObj);
+
+  MeshData mesh = vis.calculateMeshVertices(myObj);
+
+  std::vector<int> vertexIndices = mesh.second;
+
+  for(int i = 0; i < vertexIndices.size() / 3; ++i)
+  {
+    std::cout << vertexIndices[i * 3] << " " << vertexIndices[(i * 3) + 1] << " " << vertexIndices[(i * 3) + 2] << std::endl;
+  }
+
   return 0;
 }
