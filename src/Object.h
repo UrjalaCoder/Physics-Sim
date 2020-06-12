@@ -14,7 +14,8 @@
 
 enum OBJECT_SHAPE
 {
-  CUBE
+  CUBE,
+  RECT
 };
 
 class Object
@@ -23,8 +24,8 @@ private:
   void initCube(double scale);
   unsigned int id;
   int vertexCount;
-  OBJECT_SHAPE shape;
 public:
+  OBJECT_SHAPE shape;
   Object(
     glm::vec3 initialPosition = glm::vec3(0, 0, 0),
     glm::dquat initialRotation = glm::dquat(),
