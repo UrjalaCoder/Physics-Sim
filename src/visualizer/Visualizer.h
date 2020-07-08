@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../Object.h"
+#include "Shader.cpp"
 
 typedef std::pair<std::vector<glm::vec3>, std::vector<int>> MeshData;
 
@@ -18,6 +19,7 @@ private:
     bool windowOpen = true;
     std::vector<Object> entities;
     MeshData calculateRectMesh(std::vector<glm::vec3> objVertices);
+    void render(Shader shader, GLuint VAO, int vertexCount);
 public:
     Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H);
     void start();

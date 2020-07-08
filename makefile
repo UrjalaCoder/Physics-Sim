@@ -3,7 +3,7 @@ OBJECT_FILES = main.o Object.o
 VISUALIZER_OBJECTS = Visualizer.o
 CPP_OPTIONS = -std=c++17 
 LINKER_OPTIONS = -lSDL2 -lGLEW -lGL
-SRC_FILES = ./src/main.cpp ./src/Object.cpp 
+SRC_FILES = ./src/main.cpp ./src/Object.cpp
 VISUALIZER_SRC = ./src/visualizer/Visualizer.cpp
 GC = g++
 
@@ -18,6 +18,7 @@ $(VISUALIZER_OBJECTS): %.o: ./src/visualizer/%.cpp
 
 clean:
 	rm -r $(OBJECT_FILES)
+	rm -r $(VISUALIZER_OBJECTS)
 
 clean_all:
 	rm -r $(OBJECT_FILES) $(PROGRAM)
