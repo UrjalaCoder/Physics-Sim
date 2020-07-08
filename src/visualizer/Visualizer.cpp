@@ -61,15 +61,36 @@ void Visualizer::start()
         fVertices[i * 3 + 2] = vertex.z;
     }
 
+    for(int i = 0; i < fVertices.size(); i += 3)
+    {
+        std::cout << fVertices[i] << ", " << fVertices[i + 1] << ", " << fVertices[i + 2] << std::endl;
+    }
+
+    std::cout << fVertices.size() << std::endl;
+
     // Now fVertices contains the required float values.
     // We have to now get the underlying vector
     float *vertices = &fVertices[0];
+
+    // 3D Transformation
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     GLuint VBO;
     glGenBuffers(1, &VBO);
 
     // compile shader
     Shader myShader("./src/visualizer/vertexShader.vs", "./src/visualizer/fragmentShader.vs");
+    myShader.use();
+    int modelLoc = glGetUniformLocation(myShader.ID, "model");
+
+    int viewLoc = glGetUniformLocation(myShader.ID, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+    int projectionLoc = glGetUniformLocation(myShader.ID, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -85,16 +106,23 @@ void Visualizer::start()
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
 
+    float time = 0;
     while(this->windowOpen)
     {
         this->handleInput();
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        // Update model
+        model = glm::rotate(model, glm::radians(0.01f), glm::vec3(1.0f, 0.0f, 0.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
         // Render
         this->render(myShader, VAO, meshVertexOrder.size());
 
         SDL_GL_SwapWindow(this->window);
+        time += 1;
     }
 }
 

@@ -7,6 +7,7 @@
 
 #include "../Object.h"
 #include "Shader.cpp"
+#include "../../lib/glm/glm/gtc/type_ptr.hpp"
 
 typedef std::pair<std::vector<glm::vec3>, std::vector<int>> MeshData;
 
