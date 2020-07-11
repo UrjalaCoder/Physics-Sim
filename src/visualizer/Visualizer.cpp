@@ -61,13 +61,6 @@ void Visualizer::start()
         fVertices[i * 3 + 2] = vertex.z;
     }
 
-    for(int i = 0; i < fVertices.size(); i += 3)
-    {
-        std::cout << fVertices[i] << ", " << fVertices[i + 1] << ", " << fVertices[i + 2] << std::endl;
-    }
-
-    std::cout << fVertices.size() << std::endl;
-
     // Now fVertices contains the required float values.
     // We have to now get the underlying vector
     float *vertices = &fVertices[0];
@@ -76,7 +69,6 @@ void Visualizer::start()
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
-    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     GLuint VBO;
     glGenBuffers(1, &VBO);
@@ -107,19 +99,28 @@ void Visualizer::start()
     glEnable(GL_DEPTH_TEST);
 
     float time = 0;
+    Uint64 now = SDL_GetPerformanceCounter();
+    Uint64 lastTime = 0;
+    double deltaTime = 0;
     while(this->windowOpen)
     {
-        this->handleInput();
+        this->handleInput(deltaTime);
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        view = this->camera.getView();
 
         // Update model
-        model = glm::rotate(model, glm::radians(0.01f), glm::vec3(1.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         // Render
         this->render(myShader, VAO, meshVertexOrder.size());
+
+        // Update time
+        Uint64 now = SDL_GetPerformanceCounter();
+        deltaTime = (double)((now - lastTime)*1000 / (double)SDL_GetPerformanceFrequency() );
+        lastTime = now;
 
         SDL_GL_SwapWindow(this->window);
         time += 1;
@@ -133,7 +134,7 @@ void Visualizer::render(Shader shader, GLuint VAO, int vertexCount)
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
-void Visualizer::handleInput()
+void Visualizer::handleInput(double delta)
 {
     SDL_Event event;
     if(SDL_PollEvent(&event))
@@ -142,6 +143,25 @@ void Visualizer::handleInput()
         if (event.type == SDL_QUIT)
         {
             this->windowOpen = false;
+        } else if(event.type == SDL_KEYDOWN)
+        {
+            switch (key.sym)
+            {
+            case SDLK_w:
+                this->camera.handleInput(FORWARD, delta);
+                break;
+            case SDLK_a:
+                this->camera.handleInput(LEFT, delta);
+                break;
+            case SDLK_d:
+                this->camera.handleInput(RIGHT, delta);
+                break;
+            case SDLK_s:
+                this->camera.handleInput(BACKWARD, delta);
+                break;
+            default:
+                break;
+            }
         }
     }
 }

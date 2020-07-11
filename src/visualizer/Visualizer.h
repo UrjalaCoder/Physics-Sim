@@ -7,6 +7,7 @@
 
 #include "../Object.h"
 #include "Shader.cpp"
+#include "Camera.h"
 #include "../../lib/glm/glm/gtc/type_ptr.hpp"
 
 typedef std::pair<std::vector<glm::vec3>, std::vector<int>> MeshData;
@@ -21,10 +22,11 @@ private:
     std::vector<Object> entities;
     MeshData calculateRectMesh(std::vector<glm::vec3> objVertices);
     void render(Shader shader, GLuint VAO, int vertexCount);
+    Camera camera;
 public:
     Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H);
     void start();
-    void handleInput();
+    void handleInput(double deltatime);
     void setEntities(std::vector<Object> &ent);
     MeshData calculateMeshVertices(Object &obj);
 };
