@@ -102,6 +102,7 @@ void Visualizer::start()
     Uint64 now = SDL_GetPerformanceCounter();
     Uint64 lastTime = 0;
     double deltaTime = 0;
+    this->initializeInput();
     while(this->windowOpen)
     {
         this->handleInput(deltaTime);
@@ -134,6 +135,12 @@ void Visualizer::render(Shader shader, GLuint VAO, int vertexCount)
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
+void Visualizer::initializeInput()
+{
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    SDL_WarpMouseInWindow(this->window, this->WINDOW_WIDTH / 2, this->WINDOW_HEIGHT / 2);
+}
+
 void Visualizer::handleInput(double delta)
 {
     SDL_Event event;
@@ -143,7 +150,8 @@ void Visualizer::handleInput(double delta)
         if (event.type == SDL_QUIT)
         {
             this->windowOpen = false;
-        } else if(event.type == SDL_KEYDOWN)
+        }
+        if(event.type == SDL_KEYDOWN)
         {
             switch (key.sym)
             {
@@ -159,9 +167,16 @@ void Visualizer::handleInput(double delta)
             case SDLK_s:
                 this->camera.handleInput(BACKWARD, delta);
                 break;
+            case SDLK_q:
+                this->windowOpen = false;
+                break;
             default:
                 break;
             }
+        }
+        if(event.type == SDL_MOUSEMOTION)
+        {
+            this->camera.updateDirection(event.motion.xrel, event.motion.yrel);
         }
     }
 }

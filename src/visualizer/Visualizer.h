@@ -22,6 +22,7 @@ private:
     std::vector<Object> entities;
     MeshData calculateRectMesh(std::vector<glm::vec3> objVertices);
     void render(Shader shader, GLuint VAO, int vertexCount);
+    void initializeInput();
     Camera camera;
 public:
     Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H);
