@@ -7,7 +7,6 @@ glm::mat4 Camera::getView()
 
 void Camera::handleInput(MOVE_DIRECTION direction, double delta)
 {   
-    std::cout << delta << std::endl;
     const float speed = 0.1 * delta;
     glm::vec3 right = glm::normalize(glm::cross(this->front, this->up));
     switch (direction)
