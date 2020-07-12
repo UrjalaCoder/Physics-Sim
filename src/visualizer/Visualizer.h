@@ -12,6 +12,16 @@
 
 typedef std::pair<std::vector<glm::vec3>, std::vector<int>> MeshData;
 
+struct GraphicalSetup
+{
+    GLuint VBO;
+    GLuint VAO;
+    GLuint viewLoc;
+    GLuint modelLoc;
+    GLuint projectionLoc;
+    Shader shader;
+};
+
 class Visualizer
 {
 private:
@@ -23,6 +33,8 @@ private:
     MeshData calculateRectMesh(std::vector<glm::vec3> objVertices);
     void render(Shader shader, GLuint VAO, int vertexCount);
     void initializeInput();
+    std::pair<std::vector<float>, int> getAllVertices();
+    GraphicalSetup setupVisualization(glm::mat4 view, glm::mat4 model, glm::mat4 projection, std::vector<float> fVertices);
     Camera camera;
 public:
     Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H);

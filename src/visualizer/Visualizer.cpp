@@ -33,9 +33,8 @@ void Visualizer::setEntities(std::vector<Object> &ent)
     }
 }
 
-void Visualizer::start()
+std::pair<std::vector<float>, int> Visualizer::getAllVertices()
 {
-
     // Mesh data vector
     std::vector<glm::vec3> meshVertices;
     std::vector<int> meshVertexOrder;
@@ -46,9 +45,6 @@ void Visualizer::start()
         meshVertices.insert(meshVertices.end(), mesh.first.begin(), mesh.first.end());
         meshVertexOrder.insert(meshVertexOrder.end(), mesh.second.begin(), mesh.second.end());
     }
-
-    // Now meshVertices contains the vertex points and meshVertexOrder the order of drawing the vertices to create the mesh(es).
-
     // Now we have to break vector<vec3> into vector<float>;
     std::vector<float> fVertices = std::vector<float>(meshVertexOrder.size() * 3, 0);
     // TODO: Normal data
@@ -61,26 +57,21 @@ void Visualizer::start()
         fVertices[i * 3 + 2] = vertex.z;
     }
 
-    // Now fVertices contains the required float values.
-    // We have to now get the underlying vector
+    return std::pair(fVertices, meshVertexOrder.size());
+}
+
+GraphicalSetup Visualizer::setupVisualization(glm::mat4 view, glm::mat4 model, glm::mat4 projection, std::vector<float> fVertices)
+{
     float *vertices = &fVertices[0];
-
-    // 3D Transformation
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 model = glm::mat4(1.0f);
-    glm::mat4 view = glm::mat4(1.0f);
-
+    // Setup VBO, Shaders and VAO
     GLuint VBO;
     glGenBuffers(1, &VBO);
 
-    // compile shader
+    // Shader setup
     Shader myShader("./src/visualizer/vertexShader.vs", "./src/visualizer/fragmentShader.vs");
     myShader.use();
     int modelLoc = glGetUniformLocation(myShader.ID, "model");
-
     int viewLoc = glGetUniformLocation(myShader.ID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
     int projectionLoc = glGetUniformLocation(myShader.ID, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -88,17 +79,35 @@ void Visualizer::start()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    // Copy data to the bound buffer VBO:
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * fVertices.size(), vertices, GL_STATIC_DRAW);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // Enable wireframe
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
 
-    float time = 0;
+    // Enable vSync
+    SDL_GL_SetSwapInterval(1);
+
+    struct GraphicalSetup setup = { VBO, VAO, viewLoc, modelLoc, projectionLoc, myShader };
+    return setup;
+}
+
+void Visualizer::start()
+{
+    auto vertexData = this->getAllVertices();
+    std::vector<float> fVertices = vertexData.first;
+
+    // Initialize matrices.
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+
+    GraphicalSetup setup = this->setupVisualization(view, model, projection, fVertices);
+   
     Uint64 now = SDL_GetPerformanceCounter();
     Uint64 lastTime = 0;
     double deltaTime = 0;
@@ -112,11 +121,11 @@ void Visualizer::start()
         view = this->camera.getView();
 
         // Update model
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(setup.modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(setup.viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         // Render
-        this->render(myShader, VAO, meshVertexOrder.size());
+        this->render(setup.shader, setup.VAO, vertexData.second);
 
         // Update time
         Uint64 now = SDL_GetPerformanceCounter();
@@ -124,7 +133,6 @@ void Visualizer::start()
         lastTime = now;
 
         SDL_GL_SwapWindow(this->window);
-        time += 1;
     }
 }
 
