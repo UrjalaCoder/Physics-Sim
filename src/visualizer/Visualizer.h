@@ -30,10 +30,10 @@ private:
     SDL_GLContext glContext = nullptr;
     bool windowOpen = true;
     std::vector<Object> entities;
+    std::vector<Object> cubes;
     MeshData calculateRectMesh(std::vector<glm::vec3> objVertices);
-    void render(Shader shader, GLuint VAO, int vertexCount);
+    void render(Shader shader, int vertexCount);
     void initializeInput();
-    std::pair<std::vector<float>, int> getAllVertices();
     GraphicalSetup setupVisualization(glm::mat4 view, glm::mat4 model, glm::mat4 projection, std::vector<float> fVertices);
     Camera camera;
 public:

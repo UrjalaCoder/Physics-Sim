@@ -26,38 +26,18 @@ void Visualizer::setEntities(std::vector<Object> &ent)
     this->entities.clear();
     this->entities.reserve(ent.size());
 
+    this->cubes.clear();
+
     // Copy the entities
     for(int i = 0; i < ent.size(); ++i)
     {
-        this->entities.push_back(ent[i]);
+        Object entity = ent[i];
+        this->entities.push_back(entity);
+        if(entity.shape == CUBE)
+        {
+            this->cubes.push_back(entity);
+        }
     }
-}
-
-std::pair<std::vector<float>, int> Visualizer::getAllVertices()
-{
-    // Mesh data vector
-    std::vector<glm::vec3> meshVertices;
-    std::vector<int> meshVertexOrder;
-    for(auto &ent : this->entities)
-    {
-        MeshData mesh = this->calculateMeshVertices(ent);
-        // Copy the vertex and vertex order data to the end of the total vector.
-        meshVertices.insert(meshVertices.end(), mesh.first.begin(), mesh.first.end());
-        meshVertexOrder.insert(meshVertexOrder.end(), mesh.second.begin(), mesh.second.end());
-    }
-    // Now we have to break vector<vec3> into vector<float>;
-    std::vector<float> fVertices = std::vector<float>(meshVertexOrder.size() * 3, 0);
-    // TODO: Normal data
-    for(int i = 0; i < meshVertexOrder.size(); i++)
-    {
-        int order = meshVertexOrder[i];
-        glm::vec3 vertex = meshVertices[order];
-        fVertices[i * 3] = vertex.x;
-        fVertices[i * 3 + 1] = vertex.y;
-        fVertices[i * 3 + 2] = vertex.z;
-    }
-
-    return std::pair(fVertices, meshVertexOrder.size());
 }
 
 GraphicalSetup Visualizer::setupVisualization(glm::mat4 view, glm::mat4 model, glm::mat4 projection, std::vector<float> fVertices)
@@ -96,10 +76,25 @@ GraphicalSetup Visualizer::setupVisualization(glm::mat4 view, glm::mat4 model, g
     return setup;
 }
 
+std::vector<float> getCubeVertices(std::vector<glm::vec3> vertices, std::vector<int> order)
+{
+    std::vector<float> fVertices(order.size() * 3);
+    for(int i = 0; i < order.size(); i++)
+    {
+        int index = i * 3;
+        glm::vec3 vertex = vertices[order[i]];
+        fVertices[index] = vertex.x;
+        fVertices[index + 1] = vertex.y;
+        fVertices[index + 2] = vertex.z;
+    }
+
+    return fVertices;
+}
+
 void Visualizer::start()
 {
-    auto vertexData = this->getAllVertices();
-    std::vector<float> fVertices = vertexData.first;
+    auto vertexData = this->calculateMeshVertices(this->cubes[0]);
+    std::vector<float> fVertices = getCubeVertices(vertexData.first, vertexData.second);
 
     // Initialize matrices.
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WINDOW_WIDTH/(float)WINDOW_HEIGHT, 0.1f, 100.0f);
@@ -112,6 +107,8 @@ void Visualizer::start()
     Uint64 lastTime = 0;
     double deltaTime = 0;
     this->initializeInput();
+
+    setup.shader.use();
     while(this->windowOpen)
     {
         this->handleInput(deltaTime);
@@ -120,12 +117,18 @@ void Visualizer::start()
 
         view = this->camera.getView();
 
-        // Update model
-        glUniformMatrix4fv(setup.modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        // Update view
         glUniformMatrix4fv(setup.viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         // Render
-        this->render(setup.shader, setup.VAO, vertexData.second);
+        glBindVertexArray(setup.VAO);
+        for(auto &cube : this->cubes)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cube.position);
+            glUniformMatrix4fv(setup.modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            this->render(setup.shader, vertexData.second.size());
+        }
 
         // Update time
         Uint64 now = SDL_GetPerformanceCounter();
@@ -136,10 +139,8 @@ void Visualizer::start()
     }
 }
 
-void Visualizer::render(Shader shader, GLuint VAO, int vertexCount)
+void Visualizer::render(Shader shader, int vertexCount)
 {
-    shader.use();
-    glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
@@ -191,7 +192,7 @@ void Visualizer::handleInput(double delta)
 
 MeshData Visualizer::calculateMeshVertices(Object &obj)
 {
-    if(obj.shape == CUBE || obj.shape == RECT)
+    if(obj.shape == CUBE)
     {
         return this->calculateRectMesh(obj.vertices);
     } else {
