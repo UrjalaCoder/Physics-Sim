@@ -8,6 +8,7 @@
 #include "../Object.h"
 #include "Shader.cpp"
 #include "Camera.h"
+#include "../../lib/glm/glm/gtx/quaternion.hpp"
 #include "../../lib/glm/glm/gtc/type_ptr.hpp"
 
 typedef std::pair<std::vector<glm::vec3>, std::vector<int>> MeshData;
@@ -40,7 +41,7 @@ public:
     Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H);
     void start();
     void handleInput(double deltatime);
-    void setEntities(std::vector<Object> &ent);
+    void setEntities(std::vector<Object*> &ent);
     MeshData calculateMeshVertices(Object &obj);
 };
 

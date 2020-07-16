@@ -20,7 +20,7 @@ Visualizer::Visualizer(unsigned int WINDOW_W, unsigned int WINDOW_H)
     }
 }
 
-void Visualizer::setEntities(std::vector<Object> &ent)
+void Visualizer::setEntities(std::vector<Object*> &ent)
 {
     // Clear and reserve memory
     this->entities.clear();
@@ -31,7 +31,7 @@ void Visualizer::setEntities(std::vector<Object> &ent)
     // Copy the entities
     for(int i = 0; i < ent.size(); ++i)
     {
-        Object entity = ent[i];
+        Object entity = *(ent[i]);
         this->entities.push_back(entity);
         if(entity.shape == CUBE)
         {
@@ -65,8 +65,7 @@ GraphicalSetup Visualizer::setupVisualization(glm::mat4 view, glm::mat4 model, g
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Enable wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Enable Depth testing
     glEnable(GL_DEPTH_TEST);
 
     // Enable vSync
@@ -126,6 +125,8 @@ void Visualizer::start()
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cube.position);
+            glm::mat4 rotationMatrix = glm::toMat4(cube.rotation);
+            model = model * rotationMatrix;
             glUniformMatrix4fv(setup.modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             this->render(setup.shader, vertexData.second.size());
         }

@@ -7,6 +7,8 @@
 
 #include "../lib/glm/glm/glm.hpp"
 #include "../lib/glm/glm/gtc/quaternion.hpp"
+#include "../lib/glm/glm/gtc/matrix_transform.hpp"
+#include "../lib/glm/glm/gtc/type_ptr.hpp"
 
 /*
 * Simple class for an object.
